@@ -4,12 +4,7 @@ import joblib
 import pandas as pd
 
 FEATURE_ORDER = ['Time'] + [f'V{i}' for i in range(1, 29)] + ['Amount']
-THRESHOLD = 0.5
-
-# نکته: این مدل بدون StandardScaler آموزش دیده، چون در Experiment 1 ثابت شد
-# Decision Tree به Scaling حساس نیست (نتیجه تغییری نمی‌کند). بنابراین scaler.pkl
-# در این پروژه عمداً وجود ندارد. به همین ترتیب encoder.pkl هم لازم نیست،
-# چون هیچ Feature دسته‌ای (Categorical) در این دیتاست وجود ندارد.
+THRESHOLD = 0.3
 
 def load_model(path='models/model.pkl'):
     return joblib.load(path)
