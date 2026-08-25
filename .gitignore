@@ -1,3 +1,4 @@
 data/creditcard.csv
 output.json
 input.json
+src/__pycache__/
