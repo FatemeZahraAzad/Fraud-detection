@@ -1,4 +1,5 @@
 import os
+import json
 import joblib
 import pandas as pd
 from fastapi import FastAPI
@@ -8,14 +9,15 @@ app = FastAPI()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
+MODEL_DIR = os.path.join(PROJECT_ROOT, "models")
 
-model = joblib.load(
-    os.path.join(PROJECT_ROOT, "models", "model.pkl")
-)
+model = joblib.load(os.path.join(MODEL_DIR, "model.pkl"))
+scaler = joblib.load(os.path.join(MODEL_DIR, "scaler.pkl"))
+
+with open(os.path.join(MODEL_DIR, "model_config.json")) as f:
+    THRESHOLD = json.load(f)["threshold"]
 
 FEATURE_ORDER = ['Time'] + [f'V{i}' for i in range(1, 29)] + ['Amount']
-
-THRESHOLD = 0.5
 
 
 class Transaction(BaseModel):
@@ -53,17 +55,16 @@ class Transaction(BaseModel):
 
 @app.post("/predict")
 def predict(transaction: Transaction):
-
     data = transaction.model_dump()
 
     X = pd.DataFrame(
         [[data[feature] for feature in FEATURE_ORDER]],
         columns=FEATURE_ORDER
     )
+    X_scaled = scaler.transform(X)
 
-    probabilities = model.predict_proba(X)[0]
-
-    probability = probabilities[1]
+    probabilities = model.predict_proba(X_scaled)[0]
+    probability = float(probabilities[1])
 
     class_id = int(probability >= THRESHOLD)
 
